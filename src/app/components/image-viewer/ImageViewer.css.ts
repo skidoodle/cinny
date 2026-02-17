@@ -16,6 +16,8 @@ export const ImageViewerHeader = style([
     borderBottomWidth: config.borderWidth.B300,
     flexShrink: 0,
     gap: config.space.S200,
+    zIndex: 1,
+    backgroundColor: color.Background.Container,
   },
 ]);
 
@@ -25,6 +27,7 @@ export const ImageViewerContent = style([
     backgroundColor: color.Background.Container,
     color: color.Background.OnContainer,
     overflow: 'hidden',
+    position: 'relative',
   },
 ]);
 
@@ -37,6 +40,7 @@ export const ImageViewerImg = style([
     maxWidth: '100%',
     maxHeight: '100%',
     backgroundColor: color.Surface.Container,
-    transition: 'transform 100ms linear',
+    willChange: 'transform',
+    userSelect: 'none',
   },
 ]);
