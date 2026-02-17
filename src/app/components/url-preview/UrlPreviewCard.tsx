@@ -1,42 +1,17 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { IPreviewUrlResponse } from 'matrix-js-sdk';
-import {
-  Box,
-  Icon,
-  IconButton,
-  Icons,
-  Modal,
-  Overlay,
-  OverlayBackdrop,
-  OverlayCenter,
-  Scroll,
-  Spinner,
-  Text,
-  as,
-  color,
-  config,
-} from 'folds';
-import FocusTrap from 'focus-trap-react';
+import { Box, Icon, IconButton, Icons, Scroll, Spinner, Text, as, color, config } from 'folds';
 import { AsyncStatus, useAsyncCallback } from '../../hooks/useAsyncCallback';
 import { useMatrixClient } from '../../hooks/useMatrixClient';
-import {
-  UrlPreview,
-  UrlPreviewContent,
-  UrlPreviewDescription,
-  UrlPreviewHeroImg,
-  UrlPreviewImg,
-} from './UrlPreview';
+import { UrlPreview, UrlPreviewContent, UrlPreviewDescription, UrlPreviewImg } from './UrlPreview';
 import {
   getIntersectionObserverEntry,
   useIntersectionObserver,
 } from '../../hooks/useIntersectionObserver';
 import * as css from './UrlPreviewCard.css';
-import * as baseCss from './UrlPreview.css';
 import { tryDecodeURIComponent } from '../../utils/dom';
 import { mxcUrlToHttp } from '../../utils/matrix';
 import { useMediaAuthentication } from '../../hooks/useMediaAuthentication';
-import { ImageViewer } from '../image-viewer';
-import { stopPropagation } from '../../utils/keyboard';
 
 const linkStyles = { color: color.Success.Main };
 
@@ -44,8 +19,6 @@ export const UrlPreviewCard = as<'div', { url: string; ts: number }>(
   ({ url, ts, ...props }, ref) => {
     const mx = useMatrixClient();
     const useAuthentication = useMediaAuthentication();
-    const [viewImage, setViewImage] = useState<string | null>(null);
-
     const [previewStatus, loadPreview] = useAsyncCallback(
       useCallback(() => mx.getUrlPreview(url, ts), [url, ts, mx])
     );
@@ -58,53 +31,10 @@ export const UrlPreviewCard = as<'div', { url: string; ts: number }>(
 
     const renderContent = (prev: IPreviewUrlResponse) => {
       const imgUrl = mxcUrlToHttp(mx, prev['og:image'] || '', useAuthentication, 256, 256, 'scale', false);
-      const rawImgUrl = prev['og:image'] ? mxcUrlToHttp(mx, prev['og:image'], useAuthentication) : null;
-
-      const title = prev['og:title'];
-      const description = prev['og:description'];
-      const siteName = prev['og:site_name'];
-
-      const isHeroImage =
-        rawImgUrl &&
-        (prev['og:type']?.startsWith('image') || !description || title === url);
-
-      if (isHeroImage) {
-        return (
-          <>
-            <UrlPreviewHeroImg
-              src={rawImgUrl!}
-              alt={title}
-              title={title}
-              onClick={() => setViewImage(rawImgUrl)}
-            />
-            <UrlPreviewContent>
-              <Text
-                style={linkStyles}
-                truncate
-                as="a"
-                href={url}
-                target="_blank"
-                rel="no-referrer"
-                size="T200"
-                priority="300"
-              >
-                {tryDecodeURIComponent(url)}
-              </Text>
-            </UrlPreviewContent>
-          </>
-        );
-      }
 
       return (
-        <div className={baseCss.UrlPreviewCardRow}>
-          {imgUrl && (
-            <UrlPreviewImg
-              src={imgUrl}
-              alt={title}
-              title={title}
-              onClick={() => setViewImage(rawImgUrl || imgUrl)}
-            />
-          )}
+        <>
+          {imgUrl && <UrlPreviewImg src={imgUrl} alt={prev['og:title']} title={prev['og:title']} />}
           <UrlPreviewContent>
             <Text
               style={linkStyles}
@@ -116,55 +46,30 @@ export const UrlPreviewCard = as<'div', { url: string; ts: number }>(
               size="T200"
               priority="300"
             >
-              {typeof siteName === 'string' && `${siteName} | `}
+              {typeof prev['og:site_name'] === 'string' && `${prev['og:site_name']} | `}
               {tryDecodeURIComponent(url)}
             </Text>
             <Text truncate priority="400">
-              <b>{title}</b>
+              <b>{prev['og:title']}</b>
             </Text>
             <Text size="T200" priority="300">
-              <UrlPreviewDescription>{description}</UrlPreviewDescription>
+              <UrlPreviewDescription>{prev['og:description']}</UrlPreviewDescription>
             </Text>
           </UrlPreviewContent>
-        </div>
+        </>
       );
     };
 
     return (
-      <>
-        <UrlPreview {...props} ref={ref}>
-          {previewStatus.status === AsyncStatus.Success ? (
-            renderContent(previewStatus.data)
-          ) : (
-            <Box grow="Yes" alignItems="Center" justifyContent="Center" style={{ minHeight: '102px' }}>
-              <Spinner variant="Secondary" size="400" />
-            </Box>
-          )}
-        </UrlPreview>
-
-        {viewImage && (
-          <Overlay open backdrop={<OverlayBackdrop />}>
-            <OverlayCenter>
-              <FocusTrap
-                focusTrapOptions={{
-                  initialFocus: false,
-                  onDeactivate: () => setViewImage(null),
-                  clickOutsideDeactivates: true,
-                  escapeDeactivates: stopPropagation,
-                }}
-              >
-                <Modal size="500" onContextMenu={(evt: any) => evt.stopPropagation()}>
-                  <ImageViewer
-                    src={viewImage}
-                    alt="Image Preview"
-                    requestClose={() => setViewImage(null)}
-                  />
-                </Modal>
-              </FocusTrap>
-            </OverlayCenter>
-          </Overlay>
+      <UrlPreview {...props} ref={ref}>
+        {previewStatus.status === AsyncStatus.Success ? (
+          renderContent(previewStatus.data)
+        ) : (
+          <Box grow="Yes" alignItems="Center" justifyContent="Center">
+            <Spinner variant="Secondary" size="400" />
+          </Box>
         )}
-      </>
+      </UrlPreview>
     );
   }
 );
