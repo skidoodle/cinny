@@ -5,6 +5,7 @@ export const ImageViewer = style([
   DefaultReset,
   {
     height: '100%',
+    width: '100%',
   },
 ]);
 
@@ -28,6 +29,8 @@ export const ImageViewerContent = style([
     color: color.Background.OnContainer,
     overflow: 'hidden',
     position: 'relative',
+    flexGrow: 1,
+    height: '100%',
   },
 ]);
 
