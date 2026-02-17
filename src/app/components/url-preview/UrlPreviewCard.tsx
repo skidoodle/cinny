@@ -72,7 +72,7 @@ export const UrlPreviewCard = as<'div', { url: string; ts: number }>(
         return (
           <>
             <UrlPreviewHeroImg
-              src={rawImgUrl!}
+              src={rawImgUrl ?? ''}
               alt={title}
               title={title}
               onClick={() => setViewImage(rawImgUrl)}
@@ -153,7 +153,10 @@ export const UrlPreviewCard = as<'div', { url: string; ts: number }>(
                   escapeDeactivates: stopPropagation,
                 }}
               >
-                <Modal size="500" onContextMenu={(evt: any) => evt.stopPropagation()}>
+                <Modal
+                  className={css.UrlPreviewModal}
+                  onContextMenu={(evt: React.MouseEvent) => evt.stopPropagation()}
+                >
                   <ImageViewer
                     src={viewImage}
                     alt="Image Preview"
